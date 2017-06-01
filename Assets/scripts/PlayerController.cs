@@ -5,32 +5,51 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour {
 
     public GameObject shot;
-    private float shotSpeed = 10f;
-	private float maxTurnSpeed = 100f;
-	private float maxSpeed = 175f;
-	private float accel = 100f;
-	private float turnSpeed = 100f;
-	private Rigidbody2D rb; 
+
+    private Rigidbody2D rb;
+
+    
+    private const float ACCELERATION = 320f;
+    private const float TURN_SPEED = 40f;
+
+    private const float MAX_TURN_SPEED = 200f;
+    private const float MAX_SPEED = 6f;
+
+    private const float SHOT_SPEED = 10f;
 
 
-
-	// Use this for initialization
-	void Start () {
+    void Start () {
 		rb = GetComponent <Rigidbody2D>();
 	}
 
+    void Update() {
+        UpdatePlayerMovement();
+        UpdatePlayerTurn();
 
-	void UpdatePlayerTurn(){
+        // player shoot control
+        if(Input.GetButtonDown("Shoot")) {
+            GameObject go = Instantiate(shot, transform.position, Quaternion.identity);
+            go.transform.position = transform.position + (transform.up * transform.localScale.x);
+            go.transform.rotation = transform.rotation;
+            go.GetComponent<Rigidbody2D>().velocity = transform.up * SHOT_SPEED;
+        }
+
+        // when the player goes off screen
+        handlePlayerOffScreen();
+    }
+
+
+    void UpdatePlayerTurn(){
 		if (Input.GetAxisRaw("Horizontal") != 0){
 			float dir = Input.GetAxisRaw("Horizontal");
 
-			rb.AddTorque(turnSpeed * -dir * Time.deltaTime);
+			rb.AddTorque(TURN_SPEED * -dir * Time.deltaTime);
 		}
-		if (Mathf.Abs(rb.angularVelocity) > maxTurnSpeed){
+		if (Mathf.Abs(rb.angularVelocity) > MAX_TURN_SPEED){
 			if(rb.angularVelocity > 0){
-				rb.angularVelocity = maxTurnSpeed;
+				rb.angularVelocity = MAX_TURN_SPEED;
 			} else {
-				rb.angularVelocity = -maxTurnSpeed;
+				rb.angularVelocity = -MAX_TURN_SPEED;
 			}
 		}
 	}
@@ -38,56 +57,31 @@ public class PlayerController : MonoBehaviour {
 
 	void UpdatePlayerMovement () {
 		if (Input.GetAxisRaw("Vertical") > 0){
-			rb.AddForce(transform.up * accel * Time.deltaTime);
+			rb.AddForce(transform.up * ACCELERATION * Time.deltaTime);
             //(new Vector2(0f,accel * Time.deltaTime)jakeisgay
         }
 
-        if (rb.velocity.magnitude > maxSpeed){
-            rb.velocity = rb.velocity.normalized * maxSpeed;
+        if (rb.velocity.magnitude > MAX_SPEED){
+            rb.velocity = rb.velocity.normalized * MAX_SPEED;
 		}
 	}
 
-
-	// Update is called once per frame
-	void Update () {
-		UpdatePlayerMovement();
-		UpdatePlayerTurn();
-        if (Input.GetButtonDown("Shoot"))
-        {
-            GameObject go = Instantiate(shot, transform.position, Quaternion.identity);
-            go.transform.position = transform.position + transform.up;
-            go.transform.rotation = transform.rotation;
-            go.GetComponent<Rigidbody2D>().velocity = transform.up * shotSpeed;
-        }
-
+    private void handlePlayerOffScreen() {
         Vector2 playerDir = rb.velocity;
         Vector2 centerToPlayer = transform.position;
         bool isPlayerMovingAwayFromCenter = Vector2.Dot(playerDir, centerToPlayer) > 0f;
 
-        if (!Utilities.isObjectOnScreen(transform) && isPlayerMovingAwayFromCenter)
-        {
+        if(!Utilities.isObjectOnScreen(transform) && isPlayerMovingAwayFromCenter) {
             Vector2 currentPos = Camera.main.WorldToViewportPoint(transform.position);
-            Debug.Log("before:  " + currentPos);
-            if(currentPos.x < 0)
-            {
-                currentPos = new Vector2(1, currentPos.y);
-            } else if (currentPos.x > 1)
-            {
-                currentPos = new Vector2(0, currentPos.y);
-            } else if(currentPos.y < 0)
-            {
-                currentPos = new Vector2(currentPos.x, 1);
-            }
-            else if (currentPos.y > 1)
-            {
-                currentPos = new Vector2(currentPos.x, 0);
-            }
 
-            Debug.Log("after:  " + currentPos);
-            transform.position = Camera.main.ViewportToWorldPoint(currentPos);
+            // trim the position so that it isn't beyond the limits of the screen
+            currentPos = Utilities.trimViewportVector(currentPos);
 
+            // move the vector to the opposite side of the viewport
+            currentPos = Utilities.translateViewportVectorToOppositeSide(currentPos);
 
+            Vector2 newPos = Camera.main.ViewportToWorldPoint(currentPos);
+            transform.position = newPos;
         }
-
-	}
+    }
 }
