@@ -2,6 +2,10 @@
 using UnityEngine;
 
 public class AsteroidController : MonoBehaviour {
+    public enum AsteroidSize { Large, Medium, Small };
+
+    public GameObject asteroidPrefab;
+
     private Rigidbody2D rb;
 
     public List<Sprite> asteroidSprites;
@@ -11,6 +15,10 @@ public class AsteroidController : MonoBehaviour {
 
     private float minSpeed = 0.5f;
     private float maxSpeed = 1f;
+
+    [HideInInspector]
+    public AsteroidSize size;
+    
 
 
     void AsteroidRotation() {
@@ -23,6 +31,32 @@ public class AsteroidController : MonoBehaviour {
 
         rb.angularVelocity = spin;
     }
+
+
+    private void OnCollisionEnter2D(Collision2D collision) {
+        if (collision.gameObject.tag == "PlayerShot") {
+
+            Vector2 myPos = transform.position;
+            if(size == AsteroidSize.Large) {
+                GameObject go = Instantiate(asteroidPrefab, myPos, Quaternion.identity);
+                go.GetComponent<AsteroidController>().size = AsteroidSize.Medium;
+
+                GameObject go2= Instantiate(asteroidPrefab, myPos, Quaternion.identity);
+                go2.GetComponent<AsteroidController>().size = AsteroidSize.Medium;
+            }
+           else if(size == AsteroidSize.Medium) {
+                GameObject go = Instantiate(asteroidPrefab, myPos, Quaternion.identity);
+                go.GetComponent<AsteroidController>().size = AsteroidSize.Small;
+
+                GameObject go2 = Instantiate(asteroidPrefab, myPos, Quaternion.identity);
+                go2.GetComponent<AsteroidController>().size = AsteroidSize.Small;
+            }
+            Destroy(gameObject);
+            
+        }
+    }
+
+   
 
 
     void AsteroidMovement() {
@@ -65,6 +99,16 @@ public class AsteroidController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+        if(size == AsteroidSize.Large) {
+            transform.localScale = new Vector2(1f, 1f);
+        }
+        else if(size == AsteroidSize.Medium) {
+            transform.localScale = new Vector2(0.6f, 0.6f);
+        } else {
+            transform.localScale = new Vector2(0.4f, 0.4f);
+        }
+
         handleOffScreen();
 
     }

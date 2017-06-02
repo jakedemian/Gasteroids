@@ -4,8 +4,17 @@ using UnityEngine;
 
 public class ShotController : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
+
+
+
+    private void OnCollisionEnter2D(Collision2D collision) {
+        Destroy(gameObject);
+    }
+
+
+
+    // Use this for initialization
+    void Start () {
 		
 	}
 

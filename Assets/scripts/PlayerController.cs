@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour {
 
@@ -55,10 +56,15 @@ public class PlayerController : MonoBehaviour {
 	}
 
 
-	void UpdatePlayerMovement () {
+    private void OnCollisionEnter2D(Collision2D collision) {
+        SceneManager.LoadScene("main");
+        
+    }
+
+    void UpdatePlayerMovement () {
 		if (Input.GetAxisRaw("Vertical") > 0){
 			rb.AddForce(transform.up * ACCELERATION * Time.deltaTime);
-            //(new Vector2(0f,accel * Time.deltaTime)jakeisgay
+            
         }
 
         if (rb.velocity.magnitude > MAX_SPEED){
