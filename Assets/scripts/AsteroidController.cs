@@ -16,9 +16,41 @@ public class AsteroidController : MonoBehaviour {
     private float minSpeed = 0.5f;
     private float maxSpeed = 1f;
 
+    private const int ASTEROIDS_TO_SPAWN = 2;
+
     [HideInInspector]
-    public AsteroidSize size;
-    
+    public AsteroidSize size = AsteroidSize.Small;
+
+
+    // Use this for initialization
+    void Start() {
+        rb = GetComponent<Rigidbody2D>();
+        int spriteIndex = Random.Range(0, asteroidSprites.Count);
+        GetComponent<SpriteRenderer>().sprite = asteroidSprites[spriteIndex];
+
+        if(gameObject.GetComponent<PolygonCollider2D>() != null) {
+            Destroy(GetComponent<PolygonCollider2D>());
+        }
+
+        gameObject.AddComponent<PolygonCollider2D>();
+        AsteroidRotation();
+        AsteroidMovement();
+    }
+
+    // Update is called once per frame
+    void Update() {
+
+        if(size == AsteroidSize.Large) {
+            transform.localScale = new Vector2(1f, 1f);
+        } else if(size == AsteroidSize.Medium) {
+            transform.localScale = new Vector2(0.6f, 0.6f);
+        } else {
+            transform.localScale = new Vector2(0.4f, 0.4f);
+        }
+
+        handleOffScreen();
+
+    }
 
 
     void AsteroidRotation() {
@@ -38,26 +70,25 @@ public class AsteroidController : MonoBehaviour {
 
             Vector2 myPos = transform.position;
             if(size == AsteroidSize.Large) {
-                GameObject go = Instantiate(asteroidPrefab, myPos, Quaternion.identity);
-                go.GetComponent<AsteroidController>().size = AsteroidSize.Medium;
-
-                GameObject go2= Instantiate(asteroidPrefab, myPos, Quaternion.identity);
-                go2.GetComponent<AsteroidController>().size = AsteroidSize.Medium;
+                spawnAsteroids(AsteroidSize.Medium);
+                Destroy(gameObject);
             }
-           else if(size == AsteroidSize.Medium) {
-                GameObject go = Instantiate(asteroidPrefab, myPos, Quaternion.identity);
-                go.GetComponent<AsteroidController>().size = AsteroidSize.Small;
-
-                GameObject go2 = Instantiate(asteroidPrefab, myPos, Quaternion.identity);
-                go2.GetComponent<AsteroidController>().size = AsteroidSize.Small;
+            else if(size == AsteroidSize.Medium) {
+                spawnAsteroids(AsteroidSize.Small);
+                Destroy(gameObject);
+            } else {
+                Destroy(gameObject);
             }
-            Destroy(gameObject);
-            
         }
     }
 
-   
-
+    private void spawnAsteroids(AsteroidSize newAsteroidSize) {
+        for(int i = 0; i < ASTEROIDS_TO_SPAWN; i++) {
+            GameObject a = Instantiate(asteroidPrefab, transform.position, Quaternion.identity);
+            a.GetComponent<AsteroidController>().size = newAsteroidSize;
+        }
+    }
+    
 
     void AsteroidMovement() {
 
@@ -87,29 +118,5 @@ public class AsteroidController : MonoBehaviour {
     }
 
 
-    // Use this for initialization
-    void Start () {
-        rb = GetComponent<Rigidbody2D>();
-        int spriteIndex = Random.Range(0, asteroidSprites.Count);
-        GetComponent<SpriteRenderer>().sprite = asteroidSprites[spriteIndex];
-        gameObject.AddComponent<PolygonCollider2D>();
-        AsteroidRotation();
-        AsteroidMovement();
-    }
-	
-	// Update is called once per frame
-	void Update () {
-
-        if(size == AsteroidSize.Large) {
-            transform.localScale = new Vector2(1f, 1f);
-        }
-        else if(size == AsteroidSize.Medium) {
-            transform.localScale = new Vector2(0.6f, 0.6f);
-        } else {
-            transform.localScale = new Vector2(0.4f, 0.4f);
-        }
-
-        handleOffScreen();
-
-    }
+    
 }
